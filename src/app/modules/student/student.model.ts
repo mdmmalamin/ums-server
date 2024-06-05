@@ -102,7 +102,6 @@ const studentSchema = new Schema<TStudent>(
       type: String,
       required: [true, 'Student ID is required.'],
       unique: true,
-      trim: true,
     },
     user: {
       type: Schema.Types.ObjectId,
@@ -125,7 +124,7 @@ const studentSchema = new Schema<TStudent>(
       required: true,
       trim: true,
     },
-    dateOfBirth: { type: String, trim: true },
+    dateOfBirth: { type: Date },
     email: {
       type: String,
       required: [true, 'Email is required.'],
@@ -173,6 +172,10 @@ const studentSchema = new Schema<TStudent>(
       trim: true,
     },
     profileImg: { type: String },
+    admissionSemester: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicSemester',
+    },
     isDeleted: {
       type: Boolean,
       default: false,

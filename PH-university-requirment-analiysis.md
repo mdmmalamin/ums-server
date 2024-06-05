@@ -124,6 +124,13 @@ Admin:
   - createAt
   - updateAt
 
+Academic Semester: 
+  - name
+  - year
+  - code
+  - startMonth
+  - endMonth
+
 
 ### API Endpoints
 User: 
