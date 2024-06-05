@@ -1,10 +1,14 @@
-import express from 'express';
-import { userControllers } from './user.controller';
+import express, { NextFunction, Request, Response } from 'express';
+import { UserControllers } from './user.controller';
+import { createStudentValidationSchema } from '../student/student.validation';
+import validateRequest from '../../middlewares/validateRequest';
 
 const router = express.Router();
 
-router.post('/create-student', userControllers.createStudent);
-// router.post('/create-faculty');
-// router.post('/create-admin');
+router.post(
+  '/create-student',
+  validateRequest(createStudentValidationSchema),
+  UserControllers.createStudent,
+);
 
 export const UserRoutes = router;
