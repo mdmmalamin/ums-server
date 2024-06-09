@@ -13,7 +13,7 @@ app.use(cors());
 app.use('/api/v1', router);
 
 const test = (req: Request, res: Response) => {
-  res.send('Welcome to student details!');
+  res.send('Welcome to Programming Hero University APIs!');
 };
 
 app.get('/', test);

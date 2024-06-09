@@ -130,7 +130,21 @@ Academic Semester:
   - code
   - startMonth
   - endMonth
+  - createAt
+  - updateAt
 
+Academic Faculty: 
+  - _id
+  - name
+  - createAt
+  - updateAt
+
+Academic Department: 
+  - _id
+  - name
+  - academicFaculty
+  - createAt
+  - updateAt
 
 ### API Endpoints
 User: 
