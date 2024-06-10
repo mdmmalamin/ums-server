@@ -1,4 +1,9 @@
+import mongoose from 'mongoose';
 import { Student } from './student.model';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
+import { User } from '../user/user.model';
+import { TStudent } from './student.interface';
 
 const getAllStudentFromDB = async () => {
   const result = await Student.find()
@@ -15,7 +20,7 @@ const getAllStudentFromDB = async () => {
 
 const getOneStudentFromDB = async (id: string) => {
   // const result = await Student.aggregate([{ $match: { id } }]);
-  const result = await Student.findById(id)
+  const result = await Student.findOne({ id })
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -23,23 +28,92 @@ const getOneStudentFromDB = async (id: string) => {
         path: 'academicFaculty',
       },
     });
+  console.log(id);
+
+  return result;
+};
+
+const updateStudentFromDB = async (id: string, payload: Partial<TStudent>) => {
+  const { name, guardian, localGuardian, ...remainingStudentData } = payload;
+
+  /*  guardian: {fatherOccupation: "Teacher"} // req.body
+      guardian.fatherOccupation: "Teacher" // modify way
+  */
+
+  const modifiedUpdatedData: Record<string, unknown> = {
+    ...remainingStudentData,
+  };
+
+  if (name && Object.keys(name).length) {
+    for (const [key, value] of Object.entries(name)) {
+      modifiedUpdatedData[`name.${key}`] = value;
+    }
+  }
+
+  if (guardian && Object.keys(guardian).length) {
+    for (const [key, value] of Object.entries(guardian)) {
+      modifiedUpdatedData[`guardian.${key}`] = value;
+    }
+  }
+
+  if (localGuardian && Object.keys(localGuardian).length) {
+    for (const [key, value] of Object.entries(localGuardian)) {
+      modifiedUpdatedData[`localGuardian.${key}`] = value;
+    }
+  }
+
+  console.log('modifiedData: ', modifiedUpdatedData);
+  const result = await Student.findOneAndUpdate({ id }, modifiedUpdatedData, {
+    new: true,
+    runValidators: true,
+  });
 
   return result;
 };
 
 const deleteStudentFromDB = async (id: string) => {
-  const result = await Student.updateOne(
-    { id },
-    {
-      isDeleted: true,
-    },
-  );
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
 
-  return result;
+    // 1st Transaction
+    const deletedStudent = await Student.findOneAndUpdate(
+      { id },
+      { isDeleted: true },
+      { new: true, session },
+    );
+    // console.log(deletedStudent);
+
+    if (!deletedStudent) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student!');
+    }
+
+    // 2st Transaction
+    const deletedUser = await User.findOneAndUpdate(
+      { id },
+      { isDeleted: true },
+      { new: true, session },
+    );
+
+    if (!deletedUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user!');
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return [deletedStudent, deletedUser];
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student!');
+  }
 };
 
 export const StudentServices = {
   getAllStudentFromDB,
   getOneStudentFromDB,
+  updateStudentFromDB,
   deleteStudentFromDB,
 };

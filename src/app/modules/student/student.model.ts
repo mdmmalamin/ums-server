@@ -7,6 +7,8 @@ import {
   TStudent,
   TUserName,
 } from './student.interface';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
 
 // 2. Create a Schema corresponding to the document interface.
 const userNameSchema = new Schema<TUserName>({
@@ -29,6 +31,7 @@ const userNameSchema = new Schema<TUserName>({
     type: String,
     required: [true, 'Last name is required.'],
     trim: true,
+    maxlength: [20, 'Name can not be more than 20 characters'],
     // validator package
     // validate: {
     //   // validator: function (value: string) {
@@ -112,7 +115,6 @@ const studentSchema = new Schema<TStudent>(
     name: {
       type: userNameSchema,
       required: [true, 'Student name is required.'],
-      trim: true,
     },
     gender: {
       type: String,
@@ -129,12 +131,6 @@ const studentSchema = new Schema<TStudent>(
       type: String,
       required: [true, 'Email is required.'],
       unique: true,
-      trim: true,
-      // validator package
-      validate: {
-        validator: (value: string) => validator.isEmail(value),
-        message: '{VALUE} is not valid email.',
-      },
     },
     contactNo: {
       type: String,
@@ -164,12 +160,10 @@ const studentSchema = new Schema<TStudent>(
     guardian: {
       type: guardianSchema,
       required: [true, 'Guardian information is required.'],
-      trim: true,
     },
     localGuardian: {
       type: localGuardianSchema,
       required: [true, 'Local guardian information is required.'],
-      trim: true,
     },
     profileImg: { type: String },
     admissionSemester: {
@@ -216,8 +210,22 @@ studentSchema.pre('aggregate', function (next) {
 //creating a custom static method
 studentSchema.statics.isUserExists = async function (id: string) {
   const existingUser = await Student.findOne({ id });
+
   return existingUser;
 };
+
+// it is not work
+// studentSchema.pre('findOneAndUpdate', async function (next) {
+//   const query = this.getQuery();
+//   const isExistingStudent = await Student.findOne(query);
+
+//   console.log(query, isExistingStudent);
+//   if (!isExistingStudent) {
+//     throw new AppError(httpStatus.BAD_REQUEST, 'This student does not exist!');
+//   }
+
+//   next();
+// });
 
 // 3. Create a Model.
 export const Student = model<TStudent, StudentModel>('Student', studentSchema);
