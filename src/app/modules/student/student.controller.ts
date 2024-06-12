@@ -7,7 +7,7 @@ import catchAsync from '../../utils/catchAsync';
 // Higher Order Function
 
 const getAllStudents: RequestHandler = catchAsync(async (req, res, next) => {
-  const result = await StudentServices.getAllStudentFromDB();
+  const result = await StudentServices.getAllStudentFromDB(req.query);
 
   // send response
   sendResponse(res, {
