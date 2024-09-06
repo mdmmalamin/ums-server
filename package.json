@@ -1,7 +1,7 @@
 {
-  "name": "first-project",
+  "name": "ums-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "A comprehensive platform to streamline academic, administrative, and financial operations of universities, including student and faculty management, course registration, and fee payment tracking.",
   "main": "index.js",
   "scripts": {
     "start:prod": "node ./dist/server.js",
