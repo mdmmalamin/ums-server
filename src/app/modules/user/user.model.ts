@@ -46,8 +46,8 @@ const userSchema = new Schema<TUser, UserModel>(
 );
 
 // pre save middleware / hook: will work on create() save()
+//?hashing password and save into DB
 userSchema.pre('save', async function (next) {
-  //hashing password and save into DB
   this.password = await bcrypt.hash(
     this.password,
     Number(config.bcrypt_salt_rounds),
@@ -56,21 +56,34 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// set '' after saving password
+//? set '' after saving password
 userSchema.post('save', function (doc, next) {
   doc.password = '';
   next();
 });
 
+//? Is User Exist
 userSchema.statics.isUserExistsByCustomId = async function (id: string) {
   return await User.findOne({ id }).select('+password');
 };
 
+//? Is Password Match
 userSchema.statics.isPasswordMatched = async function (
   plainTextPassword,
   hashedPassword,
 ) {
   return await bcrypt.compare(plainTextPassword, hashedPassword);
+};
+
+//? Is JWT Issued Before Password Changed
+userSchema.statics.isJWTIssuedBeforePasswordChanged = async function (
+  passwordChangedTimestamp: Date,
+  jwtIssuedTimestamp: number,
+) {
+  const passwordChangeTime =
+    new Date(passwordChangedTimestamp).getTime() / 1000;
+
+  return passwordChangeTime > jwtIssuedTimestamp;
 };
 
 export const User = model<TUser, UserModel>('User', userSchema);
