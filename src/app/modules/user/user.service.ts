@@ -18,7 +18,6 @@ import { TFaculty } from '../faculty/faculty.interface';
 import { Faculty } from '../faculty/faculty.model';
 import { TAdmin } from '../admin/admin.interface';
 import { Admin } from '../admin/admin.model';
-import { verifyToken } from '../auth/auth.utils';
 import { USER_ROLE } from './user.constant';
 
 const createStudentIntoDB = async (password: string, payload: TStudent) => {
@@ -180,22 +179,26 @@ const createAdminIntoDB = async (password: string, payload: TAdmin) => {
   }
 };
 
-const getMeFromDB = async (token: string) => {
-  const decoded = verifyToken(token, config.jwt_access_secret as string);
+const changeStatus = async (id: string, payload: { status: string }) => {
+  const result = await User.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
 
-  const { id, role } = decoded;
+  return result;
+};
 
+const getMeFromDB = async (id: string, role: string) => {
   let result = null;
   if (role === USER_ROLE.student) {
-    result = await Student.findOne({ id });
+    result = await Student.findOne({ id }).populate('user');
   }
 
   if (role === USER_ROLE.faculty) {
-    result = await Faculty.findOne({ id });
+    result = await Faculty.findOne({ id }).populate('user');
   }
 
   if (role === USER_ROLE.admin) {
-    result = await Admin.findOne({ id });
+    result = await Admin.findOne({ id }).populate('user');
   }
 
   return result;
@@ -206,6 +209,7 @@ export const UserServices = {
   createFacultyIntoDB,
   createAdminIntoDB,
   getMeFromDB,
+  changeStatus,
 };
 
 // // if password is not given, use default password
