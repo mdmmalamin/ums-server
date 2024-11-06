@@ -2,7 +2,6 @@ import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import config from '../config';
 import fs from 'fs';
-import { error } from 'console';
 
 // Configuration
 cloudinary.config({
